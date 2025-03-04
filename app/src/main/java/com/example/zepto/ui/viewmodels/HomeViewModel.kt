@@ -121,6 +121,18 @@ class HomeViewModel : ViewModel() {
 
         return listOf(allCategory) + mappedCategories
     }
+    fun navigateToCategory(categoryId: String) {
+        viewModelScope.launch {
+            // You might want to save the selected category to your state
+            // This depends on how your navigation works
+            repository.getProductsByCategory(categoryId)
+
+            // If using a navigation handler or EventFlow pattern:
+            // _navigationEvents.emit(NavigationEvent.NavigateToCategory(categoryId))
+        }
+    }
+
+
 
     /**
      * Formats category names for display (capitalizes first letter of each word)

@@ -24,12 +24,16 @@ import com.example.zepto.ui.screens.ZeptoCloneApp
 import com.example.zepto.ui.theme.ZeptoTheme
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 
 import androidx.compose.ui.unit.IntOffset
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -59,6 +63,7 @@ class MainActivity : ComponentActivity() {
 }
 
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {

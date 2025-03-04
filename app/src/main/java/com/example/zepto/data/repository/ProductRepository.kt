@@ -9,13 +9,13 @@ import kotlinx.coroutines.flow.flow
 /**
  * Repository class to manage product data
  */
-class ProductRepository {
+open class ProductRepository {
     private val apiService = FakeStoreApiService()
 
     /**
      * Gets all products from the API
      */
-    fun getProducts(): Flow<List<Product>> = flow {
+    open fun getProducts(): Flow<List<Product>> = flow {
         val products = apiService.fetchProducts()
         emit(products)
     }
@@ -23,7 +23,7 @@ class ProductRepository {
     /**
      * Gets products by category
      */
-    fun getProductsByCategory(category: String): Flow<List<Product>> = flow {
+    open fun getProductsByCategory(category: String): Flow<List<Product>> = flow {
         val products = apiService.fetchProductsByCategory(category)
         emit(products)
     }
@@ -31,7 +31,7 @@ class ProductRepository {
     /**
      * Gets all available categories
      */
-    fun getCategories(): Flow<List<String>> = flow {
+    open fun getCategories(): Flow<List<String>> = flow {
         val categories = apiService.fetchCategories()
         emit(categories)
     }

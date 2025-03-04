@@ -10,6 +10,7 @@ import javax.net.ssl.HttpsURLConnection
 /**
  * Service class to fetch products from Fake Store API
  */
+
 class FakeStoreApiService {
     private val baseUrl = "https://fakestoreapi.com"
 

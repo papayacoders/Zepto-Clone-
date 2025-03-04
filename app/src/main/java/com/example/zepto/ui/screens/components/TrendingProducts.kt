@@ -1,4 +1,4 @@
-package com.example.zepto.ui.screens.Components
+package com.example.zepto.ui.screens.components
 
 import android.util.Log
 import androidx.compose.foundation.background
@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -35,7 +36,9 @@ import com.example.zepto.ui.viewmodels.HomeViewModel
 private const val TAG = "TrendingProductsSection"
 
 @Composable
-fun TrendingProductsSection(products: List<Product>) {
+fun TrendingProductsSection(products: List<Product>,
+                            viewModel: HomeViewModel ,
+                            onNavigateToCategory: (String) -> Unit) {
     val viewModel: HomeViewModel = viewModel()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
 
@@ -144,39 +147,54 @@ fun TrendingProductsSection(products: List<Product>) {
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                brush = categoryBackground
+              brush= categoryBackground,
+                shape = RoundedCornerShape(
+                    bottomStart = 20.dp,
+                    bottomEnd = 20.dp,
+                    topStart = 0.dp,
+                    topEnd = 0.dp
+                )
+            ).clip(
+                RoundedCornerShape(
+                    bottomStart = 20.dp,
+                    bottomEnd = 20.dp,
+                    topStart = 0.dp,
+                    topEnd = 0.dp
+                )
             )
-            .padding(16.dp)
+
     ) {
-        // Super Sonic Deals Header
-        Text(
-            text = "Super Sonic",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
+        GifImage()
+//        // Super Sonic Deals Header
+//        Text(
+//            text = "Super Sonic",
+//            fontFamily = FasterOne,
+//            fontWeight = FontWeight.Bold,
+//            color = Color.White,
+//            textAlign = TextAlign.Center,
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Text(
+//            text = "DEALS",
+//            fontFamily = FasterOne,
+//            fontWeight = FontWeight.Bold,
+//            color = Color.White,
+//            textAlign = TextAlign.Center,
+//            modifier = Modifier.fillMaxWidth()
+//        )
 
-        Text(
-            text = "DEALS",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
         // First row - 3 items
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             displayProducts.take(3).forEach { product ->
                 Box(modifier = Modifier.weight(1f)) {
-                    TrendingProductCard(product)
+                    TrendingProductCard(product,   onCategoryClick = onNavigateToCategory)
                 }
             }
         }
@@ -185,22 +203,25 @@ fun TrendingProductsSection(products: List<Product>) {
 
         // Second row - 3 items
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .padding(top=8.dp, start = 8.dp, end = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             displayProducts.drop(3).take(3).forEach { product ->
                 Box(modifier = Modifier.weight(1f)) {
-                    TrendingProductCard(product)
+                    TrendingProductCard(product,   onCategoryClick = onNavigateToCategory)
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Promo code banner
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+                .padding(8.dp),
+            shape = RoundedCornerShape(20.dp),
+
             colors = CardDefaults.cardColors(
                 containerColor = Color.Black.copy(alpha = 0.4F)
             )
@@ -214,9 +235,11 @@ fun TrendingProductsSection(products: List<Product>) {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp)
+                    .padding( 8.dp)
 
             )
+
         }
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }

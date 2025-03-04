@@ -1,4 +1,4 @@
-package com.example.zepto.ui.screens.Components
+package com.example.zepto.ui.screens.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row

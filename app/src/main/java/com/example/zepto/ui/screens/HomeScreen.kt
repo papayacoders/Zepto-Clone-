@@ -1,29 +1,21 @@
 package com.example.zepto.ui.screens
 
-import android.graphics.RuntimeShader
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layoutId
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.constraintlayout.compose.ConstraintSet
@@ -46,19 +37,22 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.ExperimentalMotionApi
 import androidx.constraintlayout.compose.MotionLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.zepto.data.models.Product
-import com.example.zepto.ui.screens.Components.LocationBar
-import com.example.zepto.ui.screens.Components.ProductCard
-import com.example.zepto.ui.screens.Components.SearchBar
-import com.example.zepto.ui.screens.Components.TrendingProductsSection
+import com.example.zepto.ui.screens.components.LocationBar
+import com.example.zepto.ui.screens.components.ProductCard
+import com.example.zepto.ui.screens.components.SearchBar
+import com.example.zepto.ui.screens.components.TrendingProductsSection
 import com.example.zepto.ui.viewmodels.HomeViewModel
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.zepto.ui.viewmodels.CartViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
@@ -67,8 +61,10 @@ import kotlinx.coroutines.flow.map
 @Composable
 fun HomeScreen(
     paddingValues: PaddingValues,
+    onNavigateToCategory: (String) -> Unit,
     onScroll: (Float) -> Unit
 ) {
+    val cartViewModel: CartViewModel = hiltViewModel()
     val viewModel: HomeViewModel = viewModel()
     val scrollState = rememberLazyListState()
     val categories by viewModel.categories.collectAsState()
@@ -76,7 +72,16 @@ fun HomeScreen(
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
-
+    // Create a custom nested scroll connection to detect scroll direction
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                // Pass just the raw y value - no additional processing
+                onScroll(available.y)
+                return Offset.Zero // Don't consume the scroll
+            }
+        }
+    }
     // More efficient scroll direction detection with thresholds
     val scrollDirection = remember { mutableStateOf(0f) }
 
@@ -131,7 +136,7 @@ fun HomeScreen(
                 scrollState.firstVisibleItemIndex > 0 -> 1f
                 scrollState.firstVisibleItemScrollOffset > 0 -> {
                     // Make this even smoother by using a larger denominator
-                    (scrollState.firstVisibleItemScrollOffset / 800f).coerceIn(0f, 1f)
+                    (scrollState.firstVisibleItemScrollOffset / 1000f).coerceIn(0f, 1f)
                 }
                 else -> 0f
             }
@@ -142,8 +147,8 @@ fun HomeScreen(
     val animatedScrollProgress by animateFloatAsState(
         targetValue = scrollProgress,
         animationSpec = tween(
-            durationMillis = 400, // Longer animation for smoother appearance
-            easing = FastOutSlowInEasing
+            durationMillis = 350, // Longer animation for smoother appearance
+            easing = FastOutLinearInEasing
         ),
         label = "scroll"
     )
@@ -161,6 +166,7 @@ fun HomeScreen(
             .padding(paddingValues)
             // Apply background here to prevent redrawing during scrolling
             .background(categoryBackground)
+            .nestedScroll(nestedScrollConnection)
     ) {
         MotionLayout(
             start = homeScreenStartConstraintSet(),
@@ -238,44 +244,15 @@ fun HomeScreen(
                         state = scrollState,
                         contentPadding = PaddingValues(bottom = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                        flingBehavior = rememberSnapFlingBehavior(lazyListState = scrollState),
+
                     ) {
                         // Trending Section
                         item(key = "trending") {
-                            TrendingProductsSection(products = products)
+                            TrendingProductsSection(products = products,  onNavigateToCategory = onNavigateToCategory, viewModel = viewModel)
                         }
 
                         // Product Grid Header
-                        item(key = "header") {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "All Products",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
 
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.clickable { /* Handle sort/filter */ }
-                                ) {
-                                    Text(
-                                        text = "Sort",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Default.ArrowDropDown,
-                                        contentDescription = "Sort",
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            }
-                        }
 
                         // Product Grid with optimized keys
                         items(
@@ -292,7 +269,8 @@ fun HomeScreen(
                                     Box(
                                         modifier = Modifier.weight(1f)
                                     ) {
-                                        ProductCard(product)
+                                        ProductCard(product,
+                                            cartViewModel = cartViewModel)
                                     }
                                 }
 
